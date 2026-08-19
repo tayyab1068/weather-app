@@ -3,48 +3,411 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Location Dashboard</title>
-    <!-- Leaflet CSS for Map -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <title>Visitor Locations Dashboard</title>
     <style>
-        #map { height: 100vh; width: 100%; }
-        body { margin: 0; padding: 0; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #45a049;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        
+        .status.auto {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.manual {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .map-btn {
+            padding: 6px 12px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s ease;
+        }
+        
+        .map-btn:hover {
+            background: #0b7dda;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .empty-state h2 {
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+        
+        .loading::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+        
+        .timestamp {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .ip-address {
+            font-family: monospace;
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .container {
+                margin: 0;
+            }
+            
+            table {
+                font-size: 0.9em;
+            }
+            
+            th, td {
+                padding: 8px;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="container">
+        <div class="header">
+            <h1>📍 Visitor Locations</h1>
+            <p>Real-time dashboard of user locations</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Total Visitors</h3>
+                <div class="number" id="totalCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Today</h3>
+                <div class="number" id="todayCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Last 24 Hours</h3>
+                <div class="number" id="last24Count">0</div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="controls">
+                <button class="btn btn-primary" onclick="refreshData()">🔄 Refresh Now</button>
+                <button class="btn btn-success" onclick="toggleAutoRefresh()">
+                    ▶ Auto Refresh <span class="status auto" id="autoStatus">ON</span>
+                </button>
+            </div>
+            
+            <div id="tableContainer">
+                <div class="loading">Loading data</div>
+            </div>
+        </div>
+    </div>
 
-    <div id="map"></div>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const socket = io();
-
-        // 1. Initialize Map (Default view set to Pakistan)
-        const map = L.map('map').setView([30.3753, 69.3451], 6);
-
-        // OpenStreetMap Tile Layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        const markers = {};
-
-        // 2. Receive Real-time Coordinates
-        socket.on('location-update', (data) => {
-            const { id, latitude, longitude } = data;
-
-            // Map focus shift on client coordinates
-            map.setView([latitude, longitude], 14);
-
-            // Update existing marker or add a new one
-            if (markers[id]) {
-                markers[id].setLatLng([latitude, longitude]);
+        let autoRefreshEnabled = true;
+        let refreshInterval;
+        
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshData();
+            startAutoRefresh();
+        });
+        
+        // Refresh data function
+        async function refreshData() {
+            try {
+                const response = await fetch('/api/locations');
+                const locations = await response.json();
+                
+                updateStats(locations);
+                renderTable(locations);
+            } catch (error) {
+                console.error('Error fetching locations:', error);
+                document.getElementById('tableContainer').innerHTML = 
+                    '<p style="color: red; text-align: center;">Error loading data. Please refresh the page.</p>';
+            }
+        }
+        
+        // Update statistics
+        function updateStats(locations) {
+            const total = locations.length;
+            const now = new Date();
+            const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const last24 = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            
+            const todayCount = locations.filter(loc => 
+                new Date(loc.timestamp) >= todayStart
+            ).length;
+            
+            const last24Count = locations.filter(loc => 
+                new Date(loc.timestamp) >= last24
+            ).length;
+            
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('todayCount').textContent = todayCount;
+            document.getElementById('last24Count').textContent = last24Count;
+        }
+        
+        // Render table
+        function renderTable(locations) {
+            if (locations.length === 0) {
+                document.getElementById('tableContainer').innerHTML = `
+                    <div class="empty-state">
+                        <h2>No visitor data yet</h2>
+                        <p>Locations will appear here when users allow geolocation permission.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Latitude</th>
+                            <th>Longitude</th>
+                            <th>Time</th>
+                            <th>IP Address</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${locations.map((loc, i) => `
+                            <tr>
+                                <td>${i + 1}</td>
+                                <td><strong>${parseFloat(loc.latitude).toFixed(6)}</strong></td>
+                                <td><strong>${parseFloat(loc.longitude).toFixed(6)}</strong></td>
+                                <td>
+                                    <span class="timestamp">${new Date(loc.timestamp).toLocaleString()}</span>
+                                </td>
+                                <td><span class="ip-address">${loc.ip_address}</span></td>
+                                <td>
+                                    <button class="map-btn" onclick="openMap(${loc.latitude}, ${loc.longitude})">
+                                        🗺 Map
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('tableContainer').innerHTML = tableHTML;
+        }
+        
+        // Open Google Maps
+        function openMap(lat, lng) {
+            window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+        }
+        
+        // Auto refresh
+        function startAutoRefresh() {
+            refreshInterval = setInterval(() => {
+                if (autoRefreshEnabled) {
+                    refreshData();
+                }
+            }, 5000); // Refresh every 5 seconds
+        }
+        
+        // Toggle auto refresh
+        function toggleAutoRefresh() {
+            autoRefreshEnabled = !autoRefreshEnabled;
+            const status = document.getElementById('autoStatus');
+            
+            if (autoRefreshEnabled) {
+                status.textContent = 'ON';
+                status.className = 'status auto';
+                startAutoRefresh();
             } else {
-                markers[id] = L.marker([latitude, longitude])
-                    .addTo(map)
-                    .bindPopup(`<b>User ID:</b> ${id}`)
-                    .openPopup();
+                status.textContent = 'OFF';
+                status.className = 'status manual';
+                clearInterval(refreshInterval);
+            }
+        }
+        
+        // Page visibility - pause refresh when tab is not visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearInterval(refreshInterval);
+            } else if (autoRefreshEnabled) {
+                startAutoRefresh();
             }
         });
     </script>
