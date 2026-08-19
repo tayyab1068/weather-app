@@ -1,21 +1,13 @@
 {
-  "name": "weather-app",
-  "version": "1.0.0",
-  "description": "Real-time weather app with geolocation",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
-  },
-  "keywords": ["weather", "socket.io", "geolocation"],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^4.5.4",
-    "pg": "^8.10.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
-  }
+ "name": "weather-app",
+ "version": "1.0.0",
+ "description": "Real-time weather app with geolocation",
+ "main": "server.js",
+ "scripts": {
+ "start": "node server.js"
+ },
+ "dependencies": {
+ "express": "^4.18.2",
+ "socket.io": "^4.5.4"
+ }
 }
