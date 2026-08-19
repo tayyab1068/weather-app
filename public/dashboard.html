@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Location Dashboard</title>
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map { height: 100vh; width: 100%; }
+        body { margin: 0; padding: 0; }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const socket = io();
+
+        // 1. Initialize Map (Default view set to Pakistan)
+        const map = L.map('map').setView([30.3753, 69.3451], 6);
+
+        // OpenStreetMap Tile Layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        const markers = {};
+
+        // 2. Receive Real-time Coordinates
+        socket.on('location-update', (data) => {
+            const { id, latitude, longitude } = data;
+
+            // Map focus shift on client coordinates
+            map.setView([latitude, longitude], 14);
+
+            // Update existing marker or add a new one
+            if (markers[id]) {
+                markers[id].setLatLng([latitude, longitude]);
+            } else {
+                markers[id] = L.marker([latitude, longitude])
+                    .addTo(map)
+                    .bindPopup(`<b>User ID:</b> ${id}`)
+                    .openPopup();
+            }
+        });
+    </script>
+</body>
+</html>
